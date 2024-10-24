@@ -87,7 +87,7 @@
 <body>
     <div class="container">
         <h1>Registrar Cuenta</h1>
-        <form action="registro_process.php" method="POST">
+        <form action="./registro_proceso.php" method="POST">
             <div class="form-group">
                 <label for="username">Nombre de usuario:</label>
                 <input type="text" id="username" name="username" required>

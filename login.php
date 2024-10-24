@@ -87,7 +87,7 @@
 <body>
     <div class="container">
         <h1>Iniciar Sesión</h1>
-        <form action="login_process.php" method="POST">
+        <form action="./login_proceso.php" method="POST">
             <div class="form-group">
                 <label for="username">Nombre de usuario:</label>
                 <input type="text" id="username" name="username" required>

@@ -36,9 +36,8 @@
         }
 
         .logo {
-            width: 150px; /* Ancho de la imagen */
+            width: 250px; /* Ancho de la imagen */
             margin-right: 30px; /* Espaciado entre el logo y el formulario */
-            border: 4px solid #3a3a3a; /* Borde azul */
             border-radius: 8px; /* Bordes redondeados */
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Sombra de la imagen */
             transition: transform 0.3s; /* Transición al pasar el ratón */
@@ -113,7 +112,7 @@
 </head>
 <body>
     <div class="container">
-        <img src="./img/logo.jpg" alt="Logo" class="logo"> <!-- Imagen con clase 'logo' -->
+        <img src="./img/logo.jpg" alt="Logo" class="logo"> 
         <div>
             <h1>Bienvenido</h1>
             <div class="form-group">
