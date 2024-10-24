@@ -1,16 +1,16 @@
-CREATE DATABASE IF NOT EXISTS db_usuarios;
+CREATE DATABASE db_usuarios;
 
 USE db_usuarios;
 
 -- Tabla de usuarios
-CREATE TABLE IF NOT EXISTS tbl_usuarios (
+CREATE TABLE tbl_usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL
 );
 
 -- Tabla de amigos
-CREATE TABLE IF NOT EXISTS tbl_amigos (
+CREATE TABLE tbl_amigos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     friend_id INT NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS tbl_amigos (
 );
 
 -- Tabla de solicitudes de amistad
-CREATE TABLE IF NOT EXISTS tbl_solicitudes (
+CREATE TABLE tbl_solicitudes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     sender_id INT NOT NULL,
     receiver_id INT NOT NULL,

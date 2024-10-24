@@ -5,43 +5,45 @@ $dbname = 'db_usuarios';
 $user = 'root';
 $pass = '';
 
-session_start(); // Iniciar la sesión
+session_start();
 
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $user, $pass);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$conn = mysqli_connect($host, $user, $pass, $dbname);
 
-    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-        $username = $_POST['username'];
-        $password = $_POST['password'];
-
-        // Preparar la consulta para buscar el usuario
-        $stmt = $pdo->prepare("SELECT * FROM tbl_usuarios WHERE username = :username");
-        $stmt->execute([':username' => $username]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($user && password_verify($password, $user['password'])) {
-            // Establecer sesión y redirigir a la página principal
-            $_SESSION['user_id'] = $user['id'];
-            header("Location: paginaprincipal.php"); // Redirigir a la página principal
-            exit(); // Asegurarse de que el script no siga ejecutándose
-        } else {
-            echo "<div class='container'>
-                    <h1>Nombre de usuario o contraseña incorrectos.</h1>
-                    <img src='img/carga.gif' alt='Cargando...' />
-                  </div>";
-
-            // Redirigir a login.php después de 2 segundos
-            echo "<script>
-                    setTimeout(function() {
-                        window.location.href = 'login.php';
-                    }, 2000);
-                  </script>";
-        }
-    }
-} catch (PDOException $e) {
-    echo "Error en la conexión: " . $e->getMessage();
+if (!$conn) {
+    die("Error en la conexión: " . mysqli_connect_error());
 }
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $username = $_POST['username'];
+    $password = $_POST['password'];
+
+    // Preparar la consulta para buscar el usuario
+    $sql = "SELECT * FROM tbl_usuarios WHERE username = ?";
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "s", $username);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $user = mysqli_fetch_assoc($result);
+
+    if ($user && password_verify($password, $user['password'])) {
+        // Establecer sesión y redirigir a la página principal
+        $_SESSION['user_id'] = $user['id'];
+        header("Location: paginaprincipal.php"); // Redirigir a la página principal
+        exit();
+    } else {
+        echo "<div class='container'>
+                <h1>Nombre de usuario o contraseña incorrectos.</h1>
+                <img src='img/carga.gif' alt='Cargando...' />
+              </div>";
+
+        // Redirigir a login.php después de mostrar el mensaje
+        sleep(2); // Esperar 2 segundos
+        header("Location: login.php"); // Redirigir de nuevo a login.php
+        exit();
+    }
+}
+
+mysqli_close($conn);
 ?>
 
 <style>

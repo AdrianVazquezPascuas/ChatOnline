@@ -13,42 +13,46 @@ $dbname = 'db_usuarios';
 $user = 'root';
 $pass = '';
 
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $user, $pass);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$conn = mysqli_connect($host, $user, $pass, $dbname);
 
-    // Obtener el ID del usuario actual
-    $userId = $_SESSION['user_id'];
-
-    // Verificar si el formulario de búsqueda ha sido enviado
-    if (isset($_POST['search'])) {
-        $searchTerm = $_POST['search_term'];
-
-        // Buscar usuarios que coincidan con el término de búsqueda
-        $stmt = $pdo->prepare("SELECT id, username FROM tbl_usuarios WHERE username LIKE :search AND id != :user_id");
-        $stmt->execute([
-            ':search' => '%' . $searchTerm . '%',
-            ':user_id' => $userId
-        ]);
-        $searchResults = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
-    // Consultar las solicitudes de amistad recibidas pendientes
-    $stmt = $pdo->prepare("SELECT s.id, u.username FROM tbl_solicitudes s JOIN tbl_usuarios u ON s.sender_id = u.id WHERE s.receiver_id = :user_id AND s.status = 'pending'");
-    $stmt->execute([':user_id' => $userId]);
-    $friendRequests = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Consultar los amigos del usuario
-    $stmt = $pdo->prepare("SELECT u.username FROM tbl_amigos a JOIN tbl_usuarios u ON a.friend_id = u.id WHERE a.user_id = :user_id");
-    $stmt->execute([':user_id' => $userId]);
-    $friends = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    // Contar el número total de amigos
-    $totalFriends = count($friends);
-
-} catch (PDOException $e) {
-    echo "Error en la conexión: " . $e->getMessage();
+if (!$conn) {
+    die("Error en la conexión: " . mysqli_connect_error());
 }
+
+// Obtener el ID del usuario actual
+$userId = $_SESSION['user_id'];
+
+// Verificar si el formulario de búsqueda ha sido enviado
+if (isset($_POST['search'])) {
+    $searchTerm = $_POST['search_term'];
+
+    // Buscar usuarios que coincidan con el término de búsqueda
+    $stmt = mysqli_prepare($conn, "SELECT id, username FROM tbl_usuarios WHERE username LIKE ? AND id != ?");
+    $searchLike = '%' . $searchTerm . '%';
+    mysqli_stmt_bind_param($stmt, "si", $searchLike, $userId);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $searchResults = mysqli_fetch_all($result, MYSQLI_ASSOC);
+}
+
+// Consultar las solicitudes de amistad recibidas pendientes
+$stmt = mysqli_prepare($conn, "SELECT s.id, u.username FROM tbl_solicitudes s JOIN tbl_usuarios u ON s.sender_id = u.id WHERE s.receiver_id = ? AND s.status = 'pending'");
+mysqli_stmt_bind_param($stmt, "i", $userId);
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
+$friendRequests = mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+// Consultar los amigos del usuario
+$stmt = mysqli_prepare($conn, "SELECT u.username FROM tbl_amigos a JOIN tbl_usuarios u ON a.friend_id = u.id WHERE a.user_id = ?");
+mysqli_stmt_bind_param($stmt, "i", $userId);
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
+$friends = mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+// Contar el número total de amigos
+$totalFriends = count($friends);
+
+mysqli_close($conn);
 ?>
 
 <!DOCTYPE html>
@@ -64,7 +68,7 @@ try {
             color: #f4f4f4;
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* Cambiado para alinear el contenido al inicio verticalmente */
+            align-items: flex-start;
             height: 100vh;
             margin: 0;
         }
@@ -78,7 +82,7 @@ try {
             max-width: 800px;
             margin: 20px auto;
             color: #f4f4f4;
-            position: relative; /* Para posicionar el enlace de regreso en relación a este contenedor */
+            position: relative;
         }
 
         h1, h2 {
@@ -128,13 +132,13 @@ try {
         }
 
         .back-link {
-            position: absolute; /* Permite colocar la imagen en una posición específica */
+            position: absolute;
             top: 10px;
             left: 10px;
         }
 
         .back-link img {
-            width: 40px; /* Ajusta el tamaño según necesites */
+            width: 40px;
             height: auto;
             cursor: pointer;
         }
@@ -192,7 +196,7 @@ try {
 
         <!-- Lista de amigos -->
         <div class="friends-list">
-            <h2>Tus amigos (<?= $totalFriends ?>)</h2> <!-- Muestra el total de amigos -->
+            <h2>Tus amigos (<?= $totalFriends ?>)</h2>
             <?php if ($totalFriends > 0): ?>
                 <ul>
                     <?php foreach ($friends as $friend): ?>

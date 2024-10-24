@@ -5,58 +5,62 @@ $dbname = 'db_usuarios';
 $user = 'root';
 $pass = '';
 
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $user, $pass);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$conn = mysqli_connect($host, $user, $pass, $dbname);
 
-    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-        $username = $_POST['username'];
-        $password = $_POST['password'];
+if (!$conn) {
+    die("Error en la conexión: " . mysqli_connect_error());
+}
 
-        // Verificar si el nombre de usuario ya existe
-        $stmt = $pdo->prepare("SELECT * FROM tbl_usuarios WHERE username = :username");
-        $stmt->execute([':username' => $username]);
-        $existingUser = $stmt->fetch(PDO::FETCH_ASSOC);
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $username = $_POST['username'];
+    $password = $_POST['password'];
 
-        if ($existingUser) {
-            echo "<div class='container'>
-                    <h1>El nombre de usuario ya está en uso.</h1>
-                    <img src='img/carga.gif' alt='Cargando...' />
-                  </div>";
-            // Redirigir a login.php después de 3 segundos
-             echo "<script>
-                setTimeout(function() {
-                window.location.href = 'login.php';
-                }, 3000); // 3 segundos
-                </script>";
-        }
+    // Verificar si el nombre de usuario ya existe
+    $sql = "SELECT * FROM tbl_usuarios WHERE username = ?";
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "s", $username);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $existingUser = mysqli_fetch_assoc($result);
 
-        // Encriptar la contraseña
-        $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+    if ($existingUser) {
+        echo "<div class='container'>
+                <h1>El nombre de usuario ya está en uso.</h1>
+                <img src='img/carga.gif' alt='Cargando...' />
+              </div>";
+        // Esperar 2 segundos antes de redirigir a login.php
+        sleep(2);
+        header("Location: login.php");
+        exit();
+    }
 
-        // Preparar la consulta
-        $stmt = $pdo->prepare("INSERT INTO tbl_usuarios (username, password) VALUES (:username, :password)");
+    // Encriptar la contraseña
+    $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
-        // Ejecutar la consulta
-        $stmt->execute([
-            ':username' => $username,
-            ':password' => $hashedPassword
-        ]);
+    // Preparar la consulta para insertar el nuevo usuario
+    $sql = "INSERT INTO tbl_usuarios (username, password) VALUES (?, ?)";
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "ss", $username, $hashedPassword);
+    mysqli_stmt_execute($stmt);
 
-        // Mostrar mensaje de éxito y redirigir después de 2 segundos
+    if (mysqli_stmt_affected_rows($stmt) > 0) {
+        // Usuario registrado exitosamente
         echo "<div class='container'>
                 <h1>Usuario registrado exitosamente.</h1>
                 <img src='img/carga.gif' alt='Cargando...' />
-                <script>
-                    setTimeout(function() {
-                        window.location.href = 'login.php'; // Redirigir a login.php después de 2 segundos
-                    }, 2000);
-                </script>
+              </div>";
+        // Esperar 2 segundos antes de redirigir a login.php
+        sleep(2);
+        header("Location: login.php");
+        exit();
+    } else {
+        echo "<div class='container'>
+                <h1>Error al registrar el usuario.</h1>
               </div>";
     }
-} catch (PDOException $e) {
-    echo "Error en la conexión: " . $e->getMessage();
 }
+
+mysqli_close($conn);
 ?>
 
 <style>
@@ -84,8 +88,11 @@ try {
         max-width: 400px;
         margin: 20px auto;
         color: #f4f4f4;
+        text-align: center;
     }
+
     img {
         max-width: 100px;
+        margin-top: 20px;
     }
 </style>
