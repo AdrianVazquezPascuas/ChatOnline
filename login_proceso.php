@@ -30,13 +30,19 @@ try {
                     <h1>Nombre de usuario o contraseña incorrectos.</h1>
                     <img src='img/carga.gif' alt='Cargando...' />
                   </div>";
+
+            // Redirigir a login.php después de 2 segundos
+            echo "<script>
+                    setTimeout(function() {
+                        window.location.href = 'login.php';
+                    }, 2000);
+                  </script>";
         }
     }
 } catch (PDOException $e) {
     echo "Error en la conexión: " . $e->getMessage();
 }
 ?>
-
 
 <style>
     body {
@@ -63,8 +69,11 @@ try {
         max-width: 400px;
         margin: 20px auto;
         color: #f4f4f4;
+        text-align: center;
     }
+
     img {
         max-width: 100px;
+        margin-top: 20px;
     }
 </style>

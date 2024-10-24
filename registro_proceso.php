@@ -23,7 +23,12 @@ try {
                     <h1>El nombre de usuario ya está en uso.</h1>
                     <img src='img/carga.gif' alt='Cargando...' />
                   </div>";
-            return; // Detener el proceso si el nombre de usuario ya existe
+            // Redirigir a login.php después de 3 segundos
+             echo "<script>
+                setTimeout(function() {
+                window.location.href = 'login.php';
+                }, 3000); // 3 segundos
+                </script>";
         }
 
         // Encriptar la contraseña
