@@ -14,6 +14,7 @@ $user = 'root';
 $pass = '';
 
 $conn = mysqli_connect($host, $user, $pass, $dbname);
+
 if (!$conn) {
     die("Error en la conexión: " . mysqli_connect_error());
 }
@@ -41,15 +42,14 @@ mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
 $friendRequests = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
-// Consultar los amigos del usuario (en ambas direcciones)
-$stmt = mysqli_prepare($conn, "
-    SELECT u.username FROM tbl_amigos a
-    JOIN tbl_usuarios u ON (a.friend_id = u.id AND a.user_id = ?) OR (a.user_id = u.id AND a.friend_id = ?)
-");
-mysqli_stmt_bind_param($stmt, "ii", $userId, $userId);
+// Consultar los amigos del usuario
+$stmt = mysqli_prepare($conn, "SELECT u.username FROM tbl_amigos a JOIN tbl_usuarios u ON a.friend_id = u.id WHERE a.user_id = ?");
+mysqli_stmt_bind_param($stmt, "i", $userId);
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
 $friends = mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+// Contar el número total de amigos
 $totalFriends = count($friends);
 
 mysqli_close($conn);
@@ -151,7 +151,7 @@ mysqli_close($conn);
 <body>
     <div class="container">
         <div class="back-link">
-        <a href="logout.php"><img src="img/flecha.png" alt="Cerrar sesión y volver a inicio"></a>
+            <a href="logout.php"><img src="img/flecha.png" alt="Ir a la página principal"></a>
         </div>
         <h1>Bienvenido a tu página principal</h1>
 
